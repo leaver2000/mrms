@@ -35,8 +35,7 @@ testpaths = ["tests/"]
 target-version = "py312"
 line-length = 119
 fix = true
-
-[tool.ruff.lint]
+exclude = [".venv"]
 ignore = [
     "E731", # do not assign a lambda expression, use a def
     "E402", # module level import not at top of file
@@ -44,6 +43,7 @@ ignore = [
     "E501", # line too long
     "E741", # do not use variables named 'l', 'O', or 'I'
 ]
+
 
 [tool.isort]
 profile = "black"
