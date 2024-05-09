@@ -31,11 +31,17 @@ mrms = ["MRMS_latlon.npz"]
 [tool.pytest]
 testpaths = ["tests/"]
 
+[tool.black]
+line-length = 119
+target-version = ['py312']
+
 [tool.ruff]
 target-version = "py312"
 line-length = 119
 fix = true
 exclude = [".venv"]
+
+[tool.lint]
 ignore = [
     "E731", # do not assign a lambda expression, use a def
     "E402", # module level import not at top of file
@@ -43,7 +49,6 @@ ignore = [
     "E501", # line too long
     "E741", # do not use variables named 'l', 'O', or 'I'
 ]
-
 
 [tool.isort]
 profile = "black"

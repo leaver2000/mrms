@@ -4,6 +4,8 @@ Lightweight simple API to live Multi-Radar/Multi-Sensor (MRMS) data to handle da
 unzipping the data, and reading the data from grib2 into an ``Array`` which is just a subclassed
 ``numpy.ndarray`` with some additional metadata.
 
+## Quick Start
+
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
@@ -21,3 +23,12 @@ ax.set_title(f"{arr.name}:{arr.datetime}");
 ```
 
 ![mrms](assets/MergedBaseReflectivity.png)
+
+## Installation
+
+```bash
+mkdir myproject
+cd myproject 
+myproject python3.12 -m venv .venv && source .venv/bin/activate  
+pip install git+https://github.com/leaver2000/mrms@master
+```

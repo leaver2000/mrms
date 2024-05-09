@@ -110,21 +110,20 @@ def load[T: np.float_](f: str, name: Vars | None = None, *, dtype: type[T] = np.
     return x
 
 
-def get[
-    T: np.float_
-](
+def get[T: np.float_](
     name: Vars = "VIL", *, file: str = "latest", datetime: datetime.datetime | None = None, dtype: type[T] = np.float64
 ) -> Array[Nd[Y, X], T]:
     if file == "latest":
         dt, files = file_directory(name)
         if datetime is None:  # latest
             idx = np.argmax(dt)
-        else:
+        else:  # mrms file names include seconds which can be inconsistent
             idx = np.argmin(np.abs(dt - np.datetime64(datetime)))
 
         file = files[idx]
 
-    assert file.endswith(".grib2.gz"), f"Invalid file extension: {file}"
+    if not file.endswith(".grib2.gz"):
+        raise ValueError(f"Invalid file extension: {file}")
 
     url = f"https://mrms.ncep.noaa.gov/data/2D/{name}/{file}"
 
