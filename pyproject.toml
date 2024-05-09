@@ -1,15 +1,35 @@
 [project]
 name = "mrms"
 version = "0.0.1"
+requires-python = ">=3.12"
 description = "Multi-Radar/Multi-Sensor (MRMS) dat"
 authors = [{ name = "Jason Leaver", email = "leaver2000@gmail.com" }]
 dependencies = ["numpy", "pygrib", "requests"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Weather Radar",
+]
+
+[project.optional-dependencies]
+test = ["pytest <= 8.2.0", "coverage <= 8.2.0"]
+lint = ["isort", "ruff"]
 
 [tool.setuptools]
 packages = ["mrms"]
 
 [tool.setuptools.package-data]
 mrms = ["MRMS_latlon.npz"]
+
+[tool.pytest]
+testpaths = ["tests/"]
 
 [tool.ruff]
 target-version = "py312"
@@ -24,3 +44,9 @@ ignore = [
     "E501", # line too long
     "E741", # do not use variables named 'l', 'O', or 'I'
 ]
+
+[tool.isort]
+profile = "black"
+combine_as_imports = true
+src_paths = ["mrms", "tests"]
+line_length = 119
