@@ -29,14 +29,14 @@ proj = {"a": 6378160.0, "b": 6356775.0, "proj": "longlat"}
 del __x
 
 
-DATETIME_FORMAT = "%Y%m%d-%H%M%S"
+_datetime_format = "%Y%m%d-%H%M%S"
 _datetime_pattern = re.compile(r"(\d{8}-\d{6})")
 _filename_pattern = re.compile(r"<a href=\"(.+\d{8}-\d{6}.grib2.gz)\">")
 
 
 def _search_time(s: str) -> datetime.datetime:
     assert (m := _datetime_pattern.search(s)), f"Failed to parse datetime from {s}"
-    return datetime.datetime.strptime(m.group(0), DATETIME_FORMAT)
+    return datetime.datetime.strptime(m.group(0), _datetime_format)
 
 
 def file_directory(
@@ -110,10 +110,21 @@ def load[T: np.float_](f: str, name: Vars | None = None, *, dtype: type[T] = np.
     return x
 
 
-def get[T: np.float_](name: Vars = "VIL", file: str | None = None, dtype: type[T] = np.float64) -> Array[Nd[Y, X], T]:
-    if file is None:
+def get[
+    T: np.float_
+](
+    name: Vars = "VIL", *, file: str = "latest", datetime: datetime.datetime | None = None, dtype: type[T] = np.float64
+) -> Array[Nd[Y, X], T]:
+    if file == "latest":
         dt, files = file_directory(name)
-        file = files[np.argmax(dt)]
+        if datetime is None:  # latest
+            idx = np.argmax(dt)
+        else:
+            idx = np.argmin(np.abs(dt - np.datetime64(datetime)))
+
+        file = files[idx]
+
+    assert file.endswith(".grib2.gz"), f"Invalid file extension: {file}"
 
     url = f"https://mrms.ncep.noaa.gov/data/2D/{name}/{file}"
 
