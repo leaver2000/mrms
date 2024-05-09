@@ -1,0 +1,26 @@
+[project]
+name = "mrms"
+version = "0.0.1"
+description = "Multi-Radar/Multi-Sensor (MRMS) dat"
+authors = [{ name = "Jason Leaver", email = "leaver2000@gmail.com" }]
+dependencies = ["numpy", "pygrib", "requests"]
+
+[tool.setuptools]
+packages = ["mrms"]
+
+[tool.setuptools.package-data]
+mrms = ["MRMS_latlon.npz"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 119
+fix = true
+
+[tool.ruff.lint]
+ignore = [
+    "E731", # do not assign a lambda expression, use a def
+    "E402", # module level import not at top of file
+    "E402", # module level import not at top of file
+    "E501", # line too long
+    "E741", # do not use variables named 'l', 'O', or 'I'
+]
