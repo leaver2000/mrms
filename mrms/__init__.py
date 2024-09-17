@@ -20,7 +20,7 @@ ax.pcolormesh(mrms.longitude, mrms.latitude, arr, transform=ccrs.PlateCarree())
 ```
 """
 
-__all__ = ["file_directory", "get", "load", "Vars", "latitude", "longitude", "Array"]
+__all__ = ["file_directory", "get", "load", "Vars", "latitude", "longitude", "Array", "MRMS2dVariable"]
 import typing as __T
 
 from .core import Array, file_directory, get, latitude, load, longitude
@@ -28,7 +28,7 @@ from .core import Array, file_directory, get, latitude, load, longitude
 # -------------------------------------------------------------------------------------------------
 # Define the type of the variables in the MRMS dataset.
 # -------------------------------------------------------------------------------------------------
-Vars = __T.Literal[
+MRMS2dVariable = __T.Literal[
     "BREF_1HR_MAX",
     "BrightBandBottomHeight",
     "BrightBandTopHeight",
@@ -154,7 +154,8 @@ Vars = __T.Literal[
     "VIL_Max_1440min",
     "WarmRainProbability",
 ]
-__args: tuple[Vars, ...] = __T.get_args(Vars)
+Vars = MRMS2dVariable
+__args: tuple[MRMS2dVariable, ...] = __T.get_args(MRMS2dVariable)
 (
     BREF_1HR_MAX,
     BRIGHT_BAND_BOTTOM_HEIGHT,

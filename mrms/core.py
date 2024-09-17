@@ -6,7 +6,7 @@ import os
 import re
 import tempfile
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, Final, NamedTuple
 
 import numpy as np
 import pygrib._pygrib
@@ -14,7 +14,7 @@ import requests
 from numpy.typing import ArrayLike
 
 if TYPE_CHECKING:
-    from mrms import Vars
+    from mrms import MRMS2dVariable
 
 type N = int
 type X = int
@@ -39,15 +39,18 @@ def _search_time(s: str) -> datetime.datetime:
     return datetime.datetime.strptime(m.group(0), _datetime_format)
 
 
-def file_directory(
-    name: Vars = "VIL",
-) -> tuple[np.ndarray[Nd[N], np.dtype[np.datetime64]], np.ndarray[Nd[N], np.dtype[np.str_]]]:
+class FileDirectory(NamedTuple):
+    index: np.ndarray[Nd[N], np.dtype[np.datetime64]]
+    values: np.ndarray[Nd[N], np.dtype[np.str_]]
+
+
+def file_directory(name: MRMS2dVariable = "VIL") -> FileDirectory:
     """
     Retrieves the file directory for the specified name from the MRMS server.
 
     Parameters:
     ----------
-    name : Vars, optional
+    name : MRMS2dVariable, optional
         The name of the file directory to retrieve. Defaults to "VIL".
 
     Returns:
@@ -80,13 +83,13 @@ def file_directory(
 
     fn = _filename_pattern.findall(r.text)
     dt = [_search_time(x) for x in fn]
-    return np.array(dt, dtype=np.datetime64), np.array(fn, dtype=np.str_)
+    return FileDirectory(np.array(dt, dtype=np.datetime64), np.array(fn, dtype=np.str_))
 
 
 # -------------------------------------------------------------------------------------------------
 class Array[Nd: Nd, T: np.generic](np.ndarray[Nd, np.dtype[T]]):  # type: ignore
     datetime: datetime.datetime
-    name: Vars | None
+    name: MRMS2dVariable | None
 
     def __new__(
         cls,
@@ -94,7 +97,7 @@ class Array[Nd: Nd, T: np.generic](np.ndarray[Nd, np.dtype[T]]):  # type: ignore
         *,
         dtype: type[T] | None = None,
         datetime: datetime.datetime,
-        name: Vars | None = None,
+        name: MRMS2dVariable | None = None,
     ) -> Array[Nd, T]:
         x = np.asarray(values, dtype=dtype).view(cls)
         x.name = name
@@ -102,7 +105,9 @@ class Array[Nd: Nd, T: np.generic](np.ndarray[Nd, np.dtype[T]]):  # type: ignore
         return x
 
 
-def load[T: np.float_](f: str, name: Vars | None = None, *, dtype: type[T] = np.float64) -> Array[Nd[Y, X], T]:
+def load[T: np.float_](
+    f: str, name: MRMS2dVariable | None = None, *, dtype: type[T] = np.float64
+) -> Array[Nd[Y, X], T]:
     with pygrib._pygrib.open(f) as grbs:
         grb = grbs[1]
         x = Array(grb.values, datetime=grb.validDate, name=name, dtype=dtype)
@@ -111,7 +116,11 @@ def load[T: np.float_](f: str, name: Vars | None = None, *, dtype: type[T] = np.
 
 
 def get[T: np.float_](
-    name: Vars = "VIL", *, file: str = "latest", datetime: datetime.datetime | None = None, dtype: type[T] = np.float64
+    name: MRMS2dVariable = "VIL",
+    *,
+    file: str = "latest",
+    datetime: datetime.datetime | None = None,
+    dtype: type[T] = np.float64,
 ) -> Array[Nd[Y, X], T]:
     if file == "latest":
         dt, files = file_directory(name)
@@ -126,17 +135,17 @@ def get[T: np.float_](
         raise ValueError(f"Invalid file extension: {file}")
 
     url = f"https://mrms.ncep.noaa.gov/data/2D/{name}/{file}"
-
+    # download the data stream
     with requests.get(url, stream=True) as r:
         if r.status_code != HTTPStatus.OK:
             code = HTTPStatus(r.status_code)
             raise requests.HTTPError(f"Failed to access MRMS server: {code.value} {code.phrase}")
-
+        # write the data stream to a temporary file
         with tempfile.NamedTemporaryFile("wb") as f:
             for chunk in r.iter_content(chunk_size=8192):
                 f.write(chunk)
                 f.flush()
-
+            # read the uncompressed temporary file
             with gzip.open(f.name, "rb") as f:
                 with tempfile.NamedTemporaryFile("wb") as tmp:
                     tmp.write(f.read())
